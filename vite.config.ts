@@ -3,6 +3,6 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/worldcup-team-builder-frontend/",
+  base: "./",
   plugins: [react(), tailwindcss()],
 });
