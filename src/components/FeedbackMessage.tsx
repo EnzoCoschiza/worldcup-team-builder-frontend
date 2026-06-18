@@ -15,8 +15,8 @@ export function FeedbackMessage({ feedback }: FeedbackMessageProps) {
     <div
       className={`rounded-[1.5rem] border px-5 py-4 shadow-xl backdrop-blur ${
         isSuccess
-          ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100 shadow-emerald-950/30"
-          : "border-red-300/40 bg-red-500/15 text-red-100 shadow-red-950/20"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800 shadow-emerald-900/10"
+          : "border-red-200 bg-red-50 text-red-700 shadow-red-900/10"
       }`}
       role="status"
     >

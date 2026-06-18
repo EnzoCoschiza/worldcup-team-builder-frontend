@@ -1,12 +1,16 @@
+import type { NormalizedPosition } from "../data/presets";
+
 export type Player = {
   name: string;
-  position: string;
+  position: NormalizedPosition;
 };
 
 export type PlayerSlot = {
   slotNumber: number;
   x: number;
   y: number;
+  position: NormalizedPosition;
+  roleLabel: string;
   player?: Player;
 };
 

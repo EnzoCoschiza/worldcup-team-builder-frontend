@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  color: #e5f7ef;
-  background: #07110d;
+  color: #0f172a;
+  background: #f4f7ef;
   font-family:
     "Trebuchet MS",
     "Avenir Next",
@@ -22,6 +22,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 button,
@@ -29,10 +30,21 @@ input {
   font: inherit;
 }
 
+input {
+  min-width: 0;
+}
+
 button {
   cursor: pointer;
+  min-width: 0;
+  letter-spacing: 0;
 }
 
 button:disabled {
   cursor: not-allowed;
+}
+
+::selection {
+  background: #bbf7d0;
+  color: #052e16;
 }

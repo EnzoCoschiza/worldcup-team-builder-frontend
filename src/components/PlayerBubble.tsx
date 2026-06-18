@@ -1,4 +1,5 @@
 import type { PlayerSlot } from "../types/team";
+import { getPositionOption } from "../data/presets";
 
 type PlayerBubbleProps = {
   slot: PlayerSlot;
@@ -21,17 +22,19 @@ function getPlayerLabel(name: string): string {
 }
 
 export function PlayerBubble({ slot, active, onSelect }: PlayerBubbleProps) {
-  const isComplete = Boolean(slot.player?.name.trim() && slot.player.position.trim());
+  const isComplete = Boolean(slot.player?.name.trim() && slot.player.position);
+  const shownPosition = slot.player?.position ?? slot.position;
+  const positionOption = getPositionOption(shownPosition);
 
   return (
     <button
-      aria-label={`Edit player ${slot.slotNumber}`}
-      className={`absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border text-center shadow-2xl transition duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-emerald-200/40 ${
+      aria-label={`Edit slot ${slot.slotNumber} ${slot.roleLabel}`}
+      className={`absolute flex min-h-14 min-w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border text-center shadow-2xl transition duration-200 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/60 ${
         active
-          ? "h-16 w-16 border-white bg-white text-emerald-950 shadow-white/25 sm:h-20 sm:w-20"
+          ? "h-[4.5rem] w-[4.5rem] border-white bg-white text-emerald-950 shadow-white/25 sm:h-20 sm:w-20"
           : isComplete
-            ? "h-16 w-16 border-emerald-100/80 bg-emerald-100 text-emerald-950 shadow-emerald-950/40 sm:h-20 sm:w-20"
-            : "h-14 w-14 border-white/30 bg-slate-950/75 text-white shadow-black/40 backdrop-blur sm:h-16 sm:w-16"
+            ? "h-[4.5rem] w-[4.5rem] border-amber-100/90 bg-amber-100 text-slate-950 shadow-emerald-950/35 sm:h-20 sm:w-20"
+            : "h-16 w-16 border-white/40 bg-slate-950/80 text-white shadow-black/35 backdrop-blur sm:h-[4.5rem] sm:w-[4.5rem]"
       }`}
       onClick={() => onSelect(slot.slotNumber)}
       style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
@@ -40,14 +43,16 @@ export function PlayerBubble({ slot, active, onSelect }: PlayerBubbleProps) {
       <span className="text-xs font-black opacity-75">#{slot.slotNumber}</span>
       {isComplete ? (
         <>
-          <span className="max-w-12 truncate text-xs font-black sm:max-w-14 sm:text-sm">
+          <span className="max-w-14 truncate text-xs font-black sm:max-w-16 sm:text-sm">
             {getPlayerLabel(slot.player?.name ?? "")}
           </span>
-          <span className="max-w-12 truncate text-[0.6rem] font-bold uppercase opacity-70 sm:max-w-14 sm:text-[0.65rem]">
-            {slot.player?.position}
+          <span className="max-w-14 truncate text-[0.6rem] font-black uppercase opacity-75 sm:max-w-16 sm:text-[0.65rem]">
+            {positionOption.shortLabel}
           </span>
         </>
-      ) : null}
+      ) : (
+        <span className="mt-0.5 text-sm font-black uppercase">{slot.roleLabel}</span>
+      )}
     </button>
   );
 }

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { checkHealth, getAllowedCountries, validateTeam } from "./api/client";
 import { AppHeader } from "./components/AppHeader";
-import { CountrySelector, getCountryAccent } from "./components/CountrySelector";
+import { CountrySelector } from "./components/CountrySelector";
 import { FeedbackMessage } from "./components/FeedbackMessage";
 import { FootballPitch } from "./components/FootballPitch";
 import { PlayerEditor } from "./components/PlayerEditor";
 import { TeamSummary } from "./components/TeamSummary";
+import { getSuggestedPlayers, resolveCountryMetadata, type PresetPlayer } from "./data/presets";
 import type { ApiHealthStatus, Feedback, Player, PlayerSlot, SubmitState } from "./types/team";
 import { defaultFormation } from "./utils/formation";
 
@@ -14,11 +15,11 @@ function createInitialSlots(): PlayerSlot[] {
 }
 
 function isCompletePlayer(player: Player | undefined): player is Player {
-  return Boolean(player?.name.trim() && player.position.trim());
+  return Boolean(player?.name.trim() && player.position);
 }
 
 function isPartialPlayer(player: Player | undefined): boolean {
-  return Boolean(player && (player.name.trim() || player.position.trim()) && !isCompletePlayer(player));
+  return Boolean(player && (player.name.trim() || player.position) && !isCompletePlayer(player));
 }
 
 export default function App() {
@@ -89,7 +90,22 @@ export default function App() {
     [slots],
   );
 
-  const countryAccent = selectedCountry ? getCountryAccent(selectedCountry) : "from-emerald-300 to-cyan-300";
+  const resolvedCountryMeta = useMemo(
+    () => (selectedCountry ? resolveCountryMetadata(selectedCountry) : null),
+    [selectedCountry],
+  );
+
+  const activeSlotSuggestions = useMemo(
+    () => getSuggestedPlayers(resolvedCountryMeta, activeSlot),
+    [activeSlot, resolvedCountryMeta],
+  );
+
+  const canLoadPreset = Boolean(resolvedCountryMeta?.preset);
+
+  function handleSelectCountry(country: string) {
+    setSelectedCountry(country);
+    setFeedback(null);
+  }
 
   function handleSavePlayer(slotNumber: number, player: Player) {
     setSlots((currentSlots) =>
@@ -103,6 +119,42 @@ export default function App() {
       ),
     );
     setFeedback(null);
+  }
+
+  function handleApplySuggestedPlayer(slotNumber: number, player: PresetPlayer) {
+    handleSavePlayer(slotNumber, {
+      name: player.name,
+      position: player.position,
+    });
+  }
+
+  function handleLoadPreset() {
+    const preset = resolvedCountryMeta?.preset;
+
+    if (!preset) {
+      return;
+    }
+
+    setSlots((currentSlots) =>
+      currentSlots.map((slot) => {
+        const presetPlayer = preset.players.find((player) => player.slotNumber === slot.slotNumber);
+
+        if (!presetPlayer?.name || !presetPlayer.position) {
+          const { player: _player, ...slotWithoutPlayer } = slot;
+          return slotWithoutPlayer;
+        }
+
+        return {
+          ...slot,
+          player: {
+            name: presetPlayer.name,
+            position: presetPlayer.position,
+          },
+        };
+      }),
+    );
+    setFeedback(null);
+    setSubmitState("idle");
   }
 
   function handleClearSlot(slotNumber: number) {
@@ -167,14 +219,21 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#07110d] px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,0.2),transparent_28%),radial-gradient(circle_at_80%_20%,rgba(14,165,233,0.16),transparent_30%),linear-gradient(135deg,rgba(2,6,23,0),rgba(15,23,42,0.72))]" />
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-cyan-200 to-lime-300" />
+    <main className="min-h-screen overflow-x-hidden bg-[#f4f7ef] px-3 py-4 text-slate-950 sm:px-6 lg:px-8">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.86),rgba(236,253,245,0.74)_42%,rgba(224,242,254,0.64))]" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-1 bg-gradient-to-r from-lime-400 via-sky-300 to-amber-300" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col gap-6">
         <AppHeader healthStatus={healthStatus} />
 
-        <div className={`h-1 rounded-full bg-gradient-to-r ${countryAccent} opacity-80`} />
+        <div
+          className="h-1 rounded-full shadow-sm"
+          style={{
+            background: `linear-gradient(90deg, ${resolvedCountryMeta?.accentFrom ?? "#34d399"}, ${
+              resolvedCountryMeta?.accentTo ?? "#38bdf8"
+            })`,
+          }}
+        />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
           <FootballPitch
@@ -188,15 +247,22 @@ export default function App() {
               countries={countries}
               error={countriesError}
               loading={countriesLoading}
-              onSelect={(country) => {
-                setSelectedCountry(country);
-                setFeedback(null);
-              }}
+              onSelect={handleSelectCountry}
               selectedCountry={selectedCountry}
             />
-            <PlayerEditor activeSlot={activeSlot} onClear={handleClearSlot} onSave={handleSavePlayer} />
+            <PlayerEditor
+              activeSlot={activeSlot}
+              countryMeta={resolvedCountryMeta}
+              onApplySuggestion={handleApplySuggestedPlayer}
+              onClear={handleClearSlot}
+              onSave={handleSavePlayer}
+              suggestedPlayers={activeSlotSuggestions}
+            />
             <TeamSummary
+              canLoadPreset={canLoadPreset}
               completedPlayers={completedPlayers}
+              countryMeta={resolvedCountryMeta}
+              onLoadPreset={handleLoadPreset}
               onReset={handleReset}
               onValidate={handleValidate}
               selectedCountry={selectedCountry}
