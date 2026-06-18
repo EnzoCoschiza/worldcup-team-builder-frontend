@@ -66,7 +66,7 @@ export async function checkHealth(): Promise<boolean> {
   try {
     const body = await request<HealthResponse>("/health");
 
-    return body.status === "ok";
+    return body.status?.toLocaleLowerCase() === "ok";
   } catch {
     return false;
   }

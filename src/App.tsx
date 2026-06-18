@@ -49,6 +49,7 @@ export default function App() {
         if (!ignore) {
           setCountries(allowedCountries);
           setCountriesError(null);
+          setHealthStatus("healthy");
         }
       } catch (error) {
         if (!ignore) {
@@ -181,19 +182,19 @@ export default function App() {
 
   async function handleValidate() {
     if (!selectedCountry) {
-      setFeedback({ kind: "error", message: "Select a country before validating" });
+      setFeedback({ kind: "error", message: "Selecciona un pais antes de validar." });
       return;
     }
 
     if (!completedPlayers.length) {
-      setFeedback({ kind: "error", message: "Add at least one player before validating" });
+      setFeedback({ kind: "error", message: "Agrega al menos un jugador antes de validar." });
       return;
     }
 
     if (partialSlots.length) {
       setFeedback({
         kind: "error",
-        message: `Complete or clear slot ${partialSlots.join(", ")} before validating`,
+        message: `Completa o limpia el slot ${partialSlots.join(", ")} antes de validar.`,
       });
       return;
     }
@@ -208,12 +209,12 @@ export default function App() {
       });
 
       setSubmitState("success");
-      setFeedback({ kind: "success", message: response.message || "Team created successfully" });
+      setFeedback({ kind: "success", message: response.message || "Creado exitosamente." });
     } catch (error) {
       setSubmitState("error");
       setFeedback({
         kind: "error",
-        message: error instanceof Error ? error.message : "Team validation failed",
+        message: error instanceof Error ? error.message : "El equipo no paso la validacion de la API.",
       });
     }
   }
@@ -268,10 +269,10 @@ export default function App() {
               selectedCountry={selectedCountry}
               submitLoading={submitState === "submitting"}
             />
-            <FeedbackMessage feedback={feedback} />
           </aside>
         </div>
       </div>
+      <FeedbackMessage feedback={feedback} onClose={() => setFeedback(null)} />
     </main>
   );
 }
